@@ -1,0 +1,1 @@
+/datasets/LARVIO/build/larvio /datasets/LARVIO/MH_01_easy/mav0/imu0/data.csv /datasets/LARVIO/MH_01_easy/mav0/cam0/data.csv /datasets/LARVIO/MH_01_easy/mav0/cam0/data /datasets/LARVIO/config/euroc.yaml
