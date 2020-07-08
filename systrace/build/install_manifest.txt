@@ -1,0 +1,5 @@
+/usr/local/share/systrace/systraceConfig.cmake
+/usr/local/lib/libsystrace.so.0.0.1
+/usr/local/lib/libsystrace.so.0.0
+/usr/local/lib/libsystrace.so
+/usr/local/include/systrace/tracer.h

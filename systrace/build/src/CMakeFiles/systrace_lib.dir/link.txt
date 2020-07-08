@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -std=c++11 -O3 -DNDEBUG  -shared -Wl,-soname,libsystrace.so.0.0 -o libsystrace.so.0.0.1 CMakeFiles/systrace_lib.dir/tracer.cpp.o 

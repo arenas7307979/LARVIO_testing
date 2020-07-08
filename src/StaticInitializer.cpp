@@ -4,57 +4,68 @@
 //
 
 #include "Initializer/StaticInitializer.h"
+#include "tracer.h"
 
 using namespace std;
 using namespace Eigen;
 
-namespace larvio {
+namespace larvio
+{
 
-bool StaticInitializer::tryIncInit(const std::vector<ImuData>& imu_msg_buffer,
-    MonoCameraMeasurementPtr img_msg) {
+bool StaticInitializer::tryIncInit(const std::vector<ImuData> &imu_msg_buffer,
+                                   MonoCameraMeasurementPtr img_msg)
+{
+  ScopedTrace tracer("tryIncInit");
+
   // return false if this is the 1st image for inclinometer-initializer
-  if (0 == staticImgCounter) {
+  if (0 == staticImgCounter)
+  {
     staticImgCounter++;
     init_features.clear();
     // add features to init_features
-    for (const auto& feature : img_msg->features)
+    for (const auto &feature : img_msg->features)
       init_features[feature.id] = Vector2d(feature.u, feature.v);
     // assign the lower time bound as the timestamp of first img
-    lower_time_bound = img_msg->timeStampToSec+td;
+    lower_time_bound = img_msg->timeStampToSec + td;
     return false;
   }
 
   // calculate feature distance of matched features between prev and curr images
   InitFeatures curr_features;
   list<double> feature_dis;
-  for (const auto& feature : img_msg->features) {
+  for (const auto &feature : img_msg->features)
+  {
     curr_features[feature.id] = Vector2d(feature.u, feature.v);
-    if (init_features.find(feature.id) != init_features.end()) {
+    if (init_features.find(feature.id) != init_features.end())
+    {
       Vector2d vec2d_c(feature.u, feature.v);
       Vector2d vec2d_p = init_features[feature.id];
-      feature_dis.push_back((vec2d_c-vec2d_p).norm());
+      feature_dis.push_back((vec2d_c - vec2d_p).norm());
     }
   }
   // return false if number of matched features is small
-  if (feature_dis.empty() 
-      || feature_dis.size()<20) {  
+  if (feature_dis.empty() || feature_dis.size() < 20)
+  {
     staticImgCounter = 0;
     return false;
   }
   // ignore outliers rudely
   feature_dis.sort();
   auto itr = feature_dis.end();
-  for (int i = 0; i < 19; i++)  
+  for (int i = 0; i < 19; i++)
     itr--;
   double maxDis = *itr;
   // classified as static image if maxDis is smaller than threshold, otherwise reset image counter
-  if (maxDis < max_feature_dis) {
+  if (maxDis < max_feature_dis)
+  {
     staticImgCounter++;
     init_features.swap(curr_features);
-    if (staticImgCounter < static_Num)  // return false if number of consecitive static images does not reach @static_Num
+    if (staticImgCounter < static_Num) // return false if number of consecitive static images does not reach @static_Num
       return false;
-  } else {
-//    printf("inclinometer-initializer failed at No.%d static image.",staticImgCounter+1);
+  }
+  else
+  {
+    //    printf("inclinometer-initializer failed at No.%d static image.",staticImgCounter+1);
     staticImgCounter = 0;
     return false;
   }
@@ -65,29 +76,33 @@ bool StaticInitializer::tryIncInit(const std::vector<ImuData>& imu_msg_buffer,
   // set take_off_stamp as time of the No.static_Num image
   // set initial imu_state as the state of No.static_Num image
   // earse imu data with timestamp earlier than the No.static_Num image
-  initializeGravityAndBias(img_msg->timeStampToSec+td, imu_msg_buffer);
+  initializeGravityAndBias(img_msg->timeStampToSec + td, imu_msg_buffer);
 
   bInit = true;
 
   return true;
 }
 
-
-void StaticInitializer::initializeGravityAndBias(const double& time_bound,
-    const std::vector<ImuData>& imu_msg_buffer) {
+void StaticInitializer::initializeGravityAndBias(const double &time_bound,
+                                                 const std::vector<ImuData> &imu_msg_buffer)
+{
+  ScopedTrace tracer("initializeGravityAndBias");
   // Initialize gravity and gyro bias.
   Vector3d sum_angular_vel = Vector3d::Zero();
   Vector3d sum_linear_acc = Vector3d::Zero();
 
   int usefulImuSize = 0;
   double last_imu_time;
-  for (const auto& imu_msg : imu_msg_buffer) {
+  for (const auto &imu_msg : imu_msg_buffer)
+  {
     double imu_time = imu_msg.timeStampToSec;
-    if (imu_time < lower_time_bound) continue;
-    if (imu_time > time_bound) break;
+    if (imu_time < lower_time_bound)
+      continue;
+    if (imu_time > time_bound)
+      break;
 
-    sum_angular_vel += Tg*(imu_msg.angular_velocity-As*Ma*imu_msg.linear_acceleration);
-    sum_linear_acc += Ma*imu_msg.linear_acceleration;
+    sum_angular_vel += Tg * (imu_msg.angular_velocity - As * Ma * imu_msg.linear_acceleration);
+    sum_linear_acc += Ma * imu_msg.linear_acceleration;
 
     usefulImuSize++;
 
@@ -99,7 +114,7 @@ void StaticInitializer::initializeGravityAndBias(const double& time_bound,
 
   // This is the gravity in the IMU frame.
   Vector3d gravity_imu =
-    sum_linear_acc / usefulImuSize;
+      sum_linear_acc / usefulImuSize;
 
   // Initialize the initial orientation, so that the estimation
   // is consistent with the inertial frame.
@@ -108,8 +123,8 @@ void StaticInitializer::initializeGravityAndBias(const double& time_bound,
 
   // Set rotation
   Quaterniond q0_w_i = Quaterniond::FromTwoVectors(
-    gravity_imu, -gravity_world);	
-  orientation = q0_w_i.coeffs();  
+      gravity_imu, -gravity_world);
+  orientation = q0_w_i.coeffs();
 
   // Set other state and timestamp
   state_time = last_imu_time;
@@ -117,37 +132,41 @@ void StaticInitializer::initializeGravityAndBias(const double& time_bound,
   velocity = Vector3d(0.0, 0.0, 0.0);
   acc_bias = Vector3d(0.0, 0.0, 0.0);
 
-  printf("Inclinometer-initializer completed by using %d imu data !!!\n\n",usefulImuSize);
+  printf("Inclinometer-initializer completed by using %d imu data !!!\n\n", usefulImuSize);
 
   return;
 }
 
-
-void StaticInitializer::assignInitialState(std::vector<ImuData>& imu_msg_buffer,
-        Eigen::Vector3d& m_gyro_old, Eigen::Vector3d& m_acc_old, IMUState& imu_state) {
-  if (!bInit) {
+void StaticInitializer::assignInitialState(std::vector<ImuData> &imu_msg_buffer,
+                                           Eigen::Vector3d &m_gyro_old, Eigen::Vector3d &m_acc_old, IMUState &imu_state)
+{
+  ScopedTrace tracer("assignInitialState");
+  if (!bInit)
+  {
     printf("Cannot assign initial state before initialization !!!\n");
     return;
   }
 
   // Remove used imu data
   int usefulImuSize = 0;
-  for (const auto& imu_msg : imu_msg_buffer) {
+  for (const auto &imu_msg : imu_msg_buffer)
+  {
     double imu_time = imu_msg.timeStampToSec;
-    if (imu_time > state_time) break;
+    if (imu_time > state_time)
+      break;
     usefulImuSize++;
   }
-  if (usefulImuSize>=imu_msg_buffer.size())
+  if (usefulImuSize >= imu_msg_buffer.size())
     usefulImuSize--;
 
   // Initialize last m_gyro and last m_acc
-  const auto& imu_msg = imu_msg_buffer[usefulImuSize];
+  const auto &imu_msg = imu_msg_buffer[usefulImuSize];
   m_gyro_old = imu_msg.angular_velocity;
   m_acc_old = imu_msg.linear_acceleration;
 
   // Earse used imu data
   imu_msg_buffer.erase(imu_msg_buffer.begin(),
-      imu_msg_buffer.begin()+usefulImuSize);
+                       imu_msg_buffer.begin() + usefulImuSize);
 
   // Set initial state
   imu_state.time = state_time;
@@ -160,5 +179,4 @@ void StaticInitializer::assignInitialState(std::vector<ImuData>& imu_msg_buffer,
   return;
 }
 
-
-}
+} // namespace larvio

@@ -1,0 +1,12 @@
+Symlinking /datasets/systrace/build/devel/./env.sh
+Symlinking /datasets/systrace/build/devel/./_setup_util.py
+Symlinking /datasets/systrace/build/devel/./local_setup.sh
+Symlinking /datasets/systrace/build/devel/./local_setup.bash
+Symlinking /datasets/systrace/build/devel/./setup.zsh
+Symlinking /datasets/systrace/build/devel/./local_setup.zsh
+Symlinking /datasets/systrace/build/devel/./cmake.lock
+Symlinking /datasets/systrace/build/devel/./setup.bash
+Symlinking /datasets/systrace/build/devel/./setup.sh
+Symlinking /datasets/systrace/build/devel/lib/pkgconfig/catkin_tools_prebuild.pc
+Symlinking /datasets/systrace/build/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig-version.cmake
+Symlinking /datasets/systrace/build/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig.cmake

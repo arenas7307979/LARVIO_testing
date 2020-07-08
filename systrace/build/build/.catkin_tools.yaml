@@ -1,0 +1,6 @@
+devel_space: /datasets/systrace/build/devel
+install: false
+install_space: /datasets/systrace/build/install
+profile: default
+source_space: /datasets/systrace/build/src
+workspace: /datasets/systrace/build

@@ -5,7 +5,7 @@
 //
 
 #include "Initializer/initial_sfm.h"
-
+#include "tracer.h"
 namespace larvio {
 
 GlobalSFM::GlobalSFM(){}
@@ -14,6 +14,7 @@ GlobalSFM::GlobalSFM(){}
 void GlobalSFM::triangulatePoint(Eigen::Matrix<double, 3, 4> &Pose0, Eigen::Matrix<double, 3, 4> &Pose1,
 						Vector2d &point0, Vector2d &point1, Vector3d &point_3d)
 {
+	ScopedTrace tracer("LarVio::triangulatePoint");
 	Matrix4d design_matrix = Matrix4d::Zero();
 	design_matrix.row(0) = point0[0] * Pose0.row(2) - Pose0.row(0);
 	design_matrix.row(1) = point0[1] * Pose0.row(2) - Pose0.row(1);
@@ -31,6 +32,7 @@ void GlobalSFM::triangulatePoint(Eigen::Matrix<double, 3, 4> &Pose0, Eigen::Matr
 bool GlobalSFM::solveFrameByPnP(Matrix3d &R_initial, Vector3d &P_initial, int i,
 								vector<SFMFeature> &sfm_f)
 {
+	ScopedTrace tracer("LarVio::solveFrameByPnP");
 	vector<cv::Point2f> pts_2_vector;
 	vector<cv::Point3f> pts_3_vector;
 	for (int j = 0; j < feature_num; j++)      
@@ -84,6 +86,7 @@ void GlobalSFM::triangulateTwoFrames(int frame0, Eigen::Matrix<double, 3, 4> &Po
 									 int frame1, Eigen::Matrix<double, 3, 4> &Pose1,
 									 vector<SFMFeature> &sfm_f)
 {
+	ScopedTrace tracer("LarVio::triangulateTwoFrames");
 	assert(frame0 != frame1);
 	for (int j = 0; j < feature_num; j++)
 	{
@@ -129,6 +132,7 @@ bool GlobalSFM::construct(int frame_num, Quaterniond* q, Vector3d* T, int l,
 			  const Matrix3d relative_R, const Vector3d relative_T,
 			  vector<SFMFeature> &sfm_f, map<int, Vector3d> &sfm_tracked_points)
 {
+	ScopedTrace tracer("LarVio::construct");
 	feature_num = sfm_f.size();
 	//cout << "set 0 and " << l << " as known " << endl;
 	// have relative_r relative_t

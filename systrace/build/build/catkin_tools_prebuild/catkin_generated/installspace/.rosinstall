@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /datasets/systrace/build/install/setup.sh

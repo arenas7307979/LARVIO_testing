@@ -13,6 +13,7 @@
 
 #include <iostream>
 
+#include "tracer.h"
 using namespace std;
 
 namespace larvio {
@@ -289,6 +290,7 @@ ORBdescriptor::ORBdescriptor(const cv::Mat& _image, float _scaleFactor, int _nle
         scaleFactor(_scaleFactor), nlevels(_nlevels),
         edgeThreshold(_edgeThreshold), patchSize(_patchSize)
 {
+    ScopedTrace tracer("ORBdescriptor");
     halfPatchSize = patchSize/2;
 
     // initialize @mvScaleFactor and @mvInvScaleFactor
@@ -385,6 +387,7 @@ void ORBdescriptor::computeOrbDescriptor(const cv::KeyPoint& kpt,
 bool ORBdescriptor::computeDescriptors(const vector<cv::Point2f>& pts,
                                        const vector<int>& levels,
                                        cv::Mat& descriptors) {
+    ScopedTrace tracer("ORBdescriptor::computeDescriptors");
     // return false if @mvLayerInfo, @mImagePyramid and @mBluredImagePyramid haven't been initialized
     if (0==mvLayerInfo.size() ||
         0==mvLayerScale.size() ||
@@ -416,6 +419,7 @@ bool ORBdescriptor::computeDescriptors(const vector<cv::Point2f>& pts,
 }
 
 void ORBdescriptor::initializeLayerAndPyramid(const cv::Mat& image) {
+    ScopedTrace tracer("ORBdescriptor::initializeLayerAndPyramid");
     // some useful setup
     int descPatchSize = cvCeil(halfPatchSize*sqrt(2.0));
     int border = std::max(edgeThreshold, std::max(descPatchSize, HARRIS_BLOCK_SIZE/2))+1;

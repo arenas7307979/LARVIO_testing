@@ -1,9 +1,9 @@
 #include "Initializer/solve_5pts.h"
-
+#include "tracer.h"
 namespace cv {
     void decomposeEssentialMat( InputArray _E, OutputArray _R1, OutputArray _R2, OutputArray _t )
     {
-
+        ScopedTrace tracer("decomposeEssentialMat");
         Mat E = _E.getMat().reshape(1, 3);
         CV_Assert(E.cols == 3 && E.rows == 3);
 
@@ -29,7 +29,7 @@ namespace cv {
     int recoverPose( InputArray E, InputArray _points1, InputArray _points2, InputArray _cameraMatrix,
                          OutputArray _R, OutputArray _t, InputOutputArray _mask)
     {
-
+        ScopedTrace tracer("recoverPose1");
         Mat points1, points2, cameraMatrix;
         _points1.getMat().convertTo(points1, CV_64F);
         _points2.getMat().convertTo(points2, CV_64F);
@@ -183,6 +183,7 @@ namespace cv {
     int recoverPose( InputArray E, InputArray _points1, InputArray _points2, OutputArray _R,
                          OutputArray _t, double focal, Point2d pp, InputOutputArray _mask)
     {
+        ScopedTrace tracer("recoverPose2");
         Mat cameraMatrix = (Mat_<double>(3,3) << focal, 0, pp.x, 0, focal, pp.y, 0, 0, 1);
         return cv::recoverPose(E, _points1, _points2, cameraMatrix, _R, _t, _mask);
     }
@@ -193,6 +194,7 @@ namespace larvio {
 
 bool MotionEstimator::solveRelativeRT(const vector<pair<Vector3d, Vector3d>> &corres, Matrix3d &Rotation, Vector3d &Translation)
 {
+    ScopedTrace tracer("solveRelativeRT");
     if (corres.size() >= 15)   
     {
         vector<cv::Point2f> ll, rr;

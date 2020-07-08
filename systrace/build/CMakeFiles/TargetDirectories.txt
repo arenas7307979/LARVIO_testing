@@ -1,0 +1,13 @@
+/datasets/systrace/build/CMakeFiles/install/strip.dir
+/datasets/systrace/build/CMakeFiles/install.dir
+/datasets/systrace/build/CMakeFiles/install/local.dir
+/datasets/systrace/build/CMakeFiles/list_install_components.dir
+/datasets/systrace/build/CMakeFiles/edit_cache.dir
+/datasets/systrace/build/CMakeFiles/rebuild_cache.dir
+/datasets/systrace/build/src/CMakeFiles/install/strip.dir
+/datasets/systrace/build/src/CMakeFiles/edit_cache.dir
+/datasets/systrace/build/src/CMakeFiles/systrace_lib.dir
+/datasets/systrace/build/src/CMakeFiles/list_install_components.dir
+/datasets/systrace/build/src/CMakeFiles/install/local.dir
+/datasets/systrace/build/src/CMakeFiles/rebuild_cache.dir
+/datasets/systrace/build/src/CMakeFiles/install.dir

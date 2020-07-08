@@ -5,17 +5,17 @@
 //
 
 #include "Initializer/feature_manager.h"
+#include "tracer.h"
 
-namespace larvio {
-
+namespace larvio
+{
 
 int FeaturePerId::endFrame()
 {
     return start_frame + feature_per_frame.size() - 1;
 }
 
-
-void FeatureManager::setRic(const Matrix3d& _ric)
+void FeatureManager::setRic(const Matrix3d &_ric)
 {
     ric = _ric;
 }
@@ -25,7 +25,6 @@ void FeatureManager::clearState()
     feature.clear();
 }
 
-
 int FeatureManager::getFeatureCount()
 {
     int cnt = 0;
@@ -33,7 +32,7 @@ int FeatureManager::getFeatureCount()
     {
         it.used_num = it.feature_per_frame.size();
 
-        if (it.used_num >= 2 && it.start_frame < WINDOW_SIZE - 2)  
+        if (it.used_num >= 2 && it.start_frame < WINDOW_SIZE - 2)
         {
             cnt++;
         }
@@ -41,54 +40,53 @@ int FeatureManager::getFeatureCount()
     return cnt;
 }
 
-
 bool FeatureManager::addFeatureCheckParallax(int frame_count, MonoCameraMeasurementPtr image, double td)
 {
+    ScopedTrace tracer("FeatureManager::addFeatureCheckParallax");
     // printf("input feature: %d", (int)image.size());
     // printf("num of feature: %d", getFeatureCount());
     double parallax_sum = 0;
     int parallax_num = 0;
     last_track_num = 0;
-    for (const auto& id_pts : image->features)
+    for (const auto &id_pts : image->features)
     {
         FeaturePerFrame f_per_fra(id_pts, td);
 
         int feature_id = id_pts.id;
-        auto it = find_if(feature.begin(), feature.end(), [feature_id](const FeaturePerId &it)
-                          {
+        auto it = find_if(feature.begin(), feature.end(), [feature_id](const FeaturePerId &it) {
             return it.feature_id == feature_id;
-                          });      
+        });
 
         if (it == feature.end())
         {
-            feature.push_back(FeaturePerId(feature_id, frame_count));    
+            feature.push_back(FeaturePerId(feature_id, frame_count));
             feature.back().feature_per_frame.push_back(f_per_fra);
         }
         else if (it->feature_id == feature_id)
         {
-            it->feature_per_frame.push_back(f_per_fra);    
+            it->feature_per_frame.push_back(f_per_fra);
             last_track_num++;
         }
     }
 
-    if (frame_count < 2 || last_track_num < 20)  
+    if (frame_count < 2 || last_track_num < 20)
         return true;
 
     for (auto &it_per_id : feature)
     {
         if (it_per_id.start_frame <= frame_count - 2 &&
-            it_per_id.start_frame + int(it_per_id.feature_per_frame.size()) - 1 >= frame_count - 1)   
+            it_per_id.start_frame + int(it_per_id.feature_per_frame.size()) - 1 >= frame_count - 1)
         {
-            parallax_sum += compensatedParallax2(it_per_id, frame_count);  
+            parallax_sum += compensatedParallax2(it_per_id, frame_count);
             parallax_num++;
         }
     }
 
-    if (parallax_num == 0)    
+    if (parallax_num == 0)
     {
         return true;
     }
-    else        
+    else
     {
         // printf("parallax_sum: %lf, parallax_num: %d", parallax_sum, parallax_num);
         // printf("current parallax: %lf", parallax_sum / parallax_num * FOCAL_LENGTH);
@@ -96,31 +94,31 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count, MonoCameraMeasurem
     }
 }
 
-
 vector<pair<Vector3d, Vector3d>> FeatureManager::getCorresponding(int frame_count_l, int frame_count_r)
 {
+    ScopedTrace tracer("FeatureManager::getCorresponding");
     vector<pair<Vector3d, Vector3d>> corres;
     for (auto &it : feature)
     {
-        if (it.start_frame <= frame_count_l && it.endFrame() >= frame_count_r)     
+        if (it.start_frame <= frame_count_l && it.endFrame() >= frame_count_r)
         {
             Vector3d a = Vector3d::Zero(), b = Vector3d::Zero();
             int idx_l = frame_count_l - it.start_frame;
             int idx_r = frame_count_r - it.start_frame;
 
-            a = it.feature_per_frame[idx_l].point;   
+            a = it.feature_per_frame[idx_l].point;
 
             b = it.feature_per_frame[idx_r].point;
-            
+
             corres.push_back(make_pair(a, b));
         }
     }
     return corres;
 }
 
-
 void FeatureManager::setDepth(const VectorXd &x)
 {
+    ScopedTrace tracer("FeatureManager::setDepth");
     int feature_index = -1;
     for (auto &it_per_id : feature)
     {
@@ -139,7 +137,6 @@ void FeatureManager::setDepth(const VectorXd &x)
     }
 }
 
-
 void FeatureManager::removeFailures()
 {
     for (auto it = feature.begin(), it_next = feature.begin();
@@ -150,7 +147,6 @@ void FeatureManager::removeFailures()
             feature.erase(it);
     }
 }
-
 
 void FeatureManager::clearDepth(const VectorXd &x)
 {
@@ -164,7 +160,6 @@ void FeatureManager::clearDepth(const VectorXd &x)
     }
 }
 
-
 VectorXd FeatureManager::getDepthVector()
 {
     VectorXd dep_vec(getFeatureCount());
@@ -172,7 +167,7 @@ VectorXd FeatureManager::getDepthVector()
     for (auto &it_per_id : feature)
     {
         it_per_id.used_num = it_per_id.feature_per_frame.size();
-        if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))  
+        if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
             continue;
 #if 1
         dep_vec(++feature_index) = 1. / it_per_id.estimated_depth;
@@ -182,7 +177,6 @@ VectorXd FeatureManager::getDepthVector()
     }
     return dep_vec;
 }
-
 
 void FeatureManager::removeOutlier()
 {
@@ -199,7 +193,6 @@ void FeatureManager::removeOutlier()
     }
 }
 
-
 void FeatureManager::removeBack()
 {
     for (auto it = feature.begin(), it_next = feature.begin();
@@ -208,16 +201,15 @@ void FeatureManager::removeBack()
         it_next++;
 
         if (it->start_frame != 0)
-            it->start_frame--;    
+            it->start_frame--;
         else
         {
-            it->feature_per_frame.erase(it->feature_per_frame.begin());   
-            if (it->feature_per_frame.size() == 0)    
+            it->feature_per_frame.erase(it->feature_per_frame.begin());
+            if (it->feature_per_frame.size() == 0)
                 feature.erase(it);
         }
     }
 }
-
 
 void FeatureManager::removeFront(int frame_count)
 {
@@ -225,7 +217,7 @@ void FeatureManager::removeFront(int frame_count)
     {
         it_next++;
 
-        if (it->start_frame == frame_count)       
+        if (it->start_frame == frame_count)
         {
             it->start_frame--;
         }
@@ -234,16 +226,17 @@ void FeatureManager::removeFront(int frame_count)
             int j = WINDOW_SIZE - 1 - it->start_frame;
             if (it->endFrame() < frame_count - 1)
                 continue;
-            it->feature_per_frame.erase(it->feature_per_frame.begin() + j);  
+            it->feature_per_frame.erase(it->feature_per_frame.begin() + j);
             if (it->feature_per_frame.size() == 0)
                 feature.erase(it);
         }
     }
 }
 
-
 double FeatureManager::compensatedParallax2(const FeaturePerId &it_per_id, int frame_count)
 {
+
+    ScopedTrace tracer("FeatureManager::compensatedParallax2");
     //check the second last frame is keyframe or not
     //parallax betwwen seconde last frame and third last frame
     const FeaturePerFrame &frame_i = it_per_id.feature_per_frame[frame_count - 2 - it_per_id.start_frame];
@@ -252,7 +245,7 @@ double FeatureManager::compensatedParallax2(const FeaturePerId &it_per_id, int f
     double ans = 0;
     Vector3d p_j = frame_j.point;
 
-    double u_j = p_j(0);  
+    double u_j = p_j(0);
     double v_j = p_j(1);
 
     Vector3d p_i = frame_i.point;
@@ -272,10 +265,9 @@ double FeatureManager::compensatedParallax2(const FeaturePerId &it_per_id, int f
     double v_i_comp = p_i_comp(1) / dep_i_comp;
     double du_comp = u_i_comp - u_j, dv_comp = v_i_comp - v_j;
 
-    ans = max(ans, sqrt(min(du * du + dv * dv, du_comp * du_comp + dv_comp * dv_comp)));  
+    ans = max(ans, sqrt(min(du * du + dv * dv, du_comp * du_comp + dv_comp * dv_comp)));
 
     return ans;
 }
 
-
-}
+} // namespace larvio

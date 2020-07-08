@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/datasets/systrace/src/tracer.cpp
+tracer.h
+/datasets/systrace/src/tracer.h
+
+/datasets/systrace/src/tracer.h
+fcntl.h
+-
+iostream
+-
+stdint.h
+-
+stdio.h
+-
+string.h
+-
+sys/stat.h
+-
+sys/types.h
+-
+unistd.h
+-
+

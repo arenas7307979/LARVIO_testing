@@ -1,0 +1,43 @@
+cmake_minimum_required(VERSION 2.8.3)
+
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
+add_definitions(-DNOMINMAX)
+
+set(SOURCES tracer.cpp)
+set(HEADERS tracer.h)
+
+add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#        DEFINE_SYMBOL systrace_DLL_EXPORT
+#        VERSION ${PROJECT_VERSION}
+#	OVERSION ${PROJECT_VERSION}
+#        CLEAN_DIRECT_OUTPUT 1
+#        OUTPUT_NAME ${PROJECT_NAME})
+
+#target_link_libraries(systrace_lib ${OpenCV_LIBS} ${OpenMP_CXX_LIBRARIES})
+target_link_libraries(${PROJECT_NAME})
+
+# install(TARGETS systrace_lib
+#         RUNTIME DESTINATION bin COMPONENT main
+#         LIBRARY DESTINATION lib PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE COMPONENT main
+#         ARCHIVE DESTINATION lib COMPONENT main)
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ../build/systrace/lib
+  LIBRARY DESTINATION ../build/systrace/lib
+  RUNTIME DESTINATION ../build/systrace/bin)
+
+install(FILES ${HEADERS} DESTINATION include/systrace COMPONENT main)
+
+# install(TARGETS ${PROJECT_NAME}
+#   ARCHIVE DESTINATION lib
+#   LIBRARY DESTINATION lib
+#   RUNTIME DESTINATION bin)

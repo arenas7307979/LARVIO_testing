@@ -60,10 +60,18 @@ target_link_libraries(dynamicInitializer
 add_library(flexibleInitializer
     ${PROJECT_SOURCE_DIR}/src/FlexibleInitializer.cpp
 )
+
+#systrace
+add_library(systraceInitializer
+    ${PROJECT_SOURCE_DIR}/src/tracer.cpp
+)
+
 target_link_libraries(flexibleInitializer
     staticInitializer
     dynamicInitializer
+    systraceInitializer
 )
+
 
 # Estimator
 add_library(estimator
@@ -83,3 +91,16 @@ target_link_libraries(larvio
     ${OpenCV_LIBS}
     ${Pangolin_LIBRARIES}
 )
+
+#install
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ../build/systrace/lib
+  LIBRARY DESTINATION ../build/systrace/lib
+  RUNTIME DESTINATION ../build/systrace/bin)
+
+install(FILES ${HEADERS} DESTINATION include/systrace COMPONENT main)
