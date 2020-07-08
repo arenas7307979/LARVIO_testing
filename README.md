@@ -50,7 +50,7 @@ LARVIO is a CMake based software. After install the dependencies, try commands b
 cd LARVIO
 mkdir build
 cd build
-cmake ..
+cmake -D CMAKE_BUILD_TYPE=Release ..
 make
 ```
 An example is given in `LARVIO/run.sh` to show how to run LARVIO.
